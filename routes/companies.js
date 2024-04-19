@@ -1,9 +1,9 @@
 const express = require('express')
 const ExpressError = require('../expressError')
-const router = express.Router();
 const db = require('../db');
-const { route } = require('../app');
+const slugify = require('slugify');
 
+const router = new express.Router();
 
 
 router.get('/', async (res, req, next) => {
@@ -23,7 +23,13 @@ router.get('/', async (res, req, next) => {
 router.get('/:code', async (res, req, next) => {
     try{
         const { code } = req.params;
-        const results = await db.query(`SELECT * FROM companies WHERE id = $1`, [code])
+        const results = await db.query(
+            `SELECT * 
+            FROM companies 
+            WHERE id = $1`, [code])
+        
+        res.json({'Company': results.rows})
+            
         if (results.rows.length === 0) {
             throw new ExpressError(`Can't find Company with code: ${code}`, 404);
         }
@@ -37,14 +43,13 @@ router.get('/:code', async (res, req, next) => {
 router.post('/', async (res, req, next) => {
     try{
         const { name, description } = req.body;
-        const code = slugify(name, {lower:true});
 
         results = await db.query(
             `INSERT INTO companies (code, name, description)
             VALUES ($1, $2, $3)
             RETURNING code, name, description`[code, name, description]);
 
-        return resizeTo.status(201).json({'company': results.rows})
+        return res.status(201).json({'company': results.rows})
     }
     catch(e){
        return next(e)
@@ -79,13 +84,13 @@ router.delete("/:code", async (req, res, next) => {
     try {
       const {code} = req.params;
   
-      const result = await db.query(
+      const results = await db.query(
             `DELETE FROM companies
              WHERE code=$1
              RETURNING code`,
           [code]);
   
-      if (result.rows.length == 0) {
+      if (results.rows.length == 0) {
         throw new ExpressError(`Can't find Company with code: ${code}`, 404)
       } else {
         return res.json({"status": "deleted"});
