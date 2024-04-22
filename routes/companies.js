@@ -6,7 +6,7 @@ const slugify = require('slugify');
 const router = new express.Router();
 
 
-router.get('/', async (res, req, next) => {
+router.get('/', async (req, res, next) => {
     try{
         const results = await db.query(
             `SELECT code, name 
@@ -20,7 +20,7 @@ router.get('/', async (res, req, next) => {
 })
 
 
-router.get('/:code', async (res, req, next) => {
+router.get('/:code', async (req, res, next) => {
     try{
         const { code } = req.params;
         const results = await db.query(
@@ -40,14 +40,14 @@ router.get('/:code', async (res, req, next) => {
 })
 
 
-router.post('/', async (res, req, next) => {
+router.post('/', async (req, res, next) => {
     try{
         const { name, description } = req.body;
 
         results = await db.query(
             `INSERT INTO companies (code, name, description)
             VALUES ($1, $2, $3)
-            RETURNING code, name, description`[code, name, description]);
+            RETURNING code, name, description`,[code, name, description]);
 
         return res.status(201).json({'company': results.rows})
     }
@@ -57,7 +57,7 @@ router.post('/', async (res, req, next) => {
 })
 
 
-router.put('/:code', async (res, req, next) => {
+router.put('/:code', async (req, res, next) => {
     try{
         const { code } = req.params;
         const { name, description } = req.body;
@@ -71,7 +71,7 @@ router.put('/:code', async (res, req, next) => {
         if (results.rows.length === 0) {
             throw new ExpressError(`Can't find Company with code: ${code}`, 404);
         }else{
-            results.json({'Company': results.rows[0]})
+            res.json({'Company': results.rows[0]})
         }
     }
     catch(e){
