@@ -9,16 +9,18 @@ const app = require('../app')
 const db = require('../db')
 
 let testCompany = {
+    code: 'Test Code',
     name: 'Test Company',
     description: 'Test Description'
   };
 
 beforeEach(async ()=>{
-    const result = await db.query(`IMPORT INTO companies (name, description)
-    VALUES ($1, $2)
-    RETURNING (code, name, description)` [testCompany.name, testCompany.description])
+    const result = await db.query(`INSERT INTO companies (code, name, description)
+    VALUES ($1, $2, $3)
+    RETURNING (code, name, description)`, [testCompany.code, testCompany.name, testCompany.description])
 
     testCompany = result.rows[0];
+
 })
 
 afterEach(async()=>{
@@ -26,7 +28,7 @@ afterEach(async()=>{
 });
 
 afterAll(async ()=>{
-    await db.end;
+    await db.end();
 })
 
 
